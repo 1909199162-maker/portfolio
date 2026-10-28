@@ -69,13 +69,14 @@ const WORKS = [
   },
   {
     cat: "plugin",
-    title: "番茄计时插件",
-    desc: "点一下锁 25 分钟，到点响一声。装进 Edge，图标一按就用。",
-    tag: "Manifest V3",
-    status: "第 4 课开工",
-    state: "doing",
-    href: "",
-    linkText: ""
+    title: "静一静",
+    desc: "把 B站 首页的推荐流藏掉，只留导航和搜索。装进 Edge，页面立刻安静。",
+    tag: "Manifest V3 / content script",
+    status: "可用 · 本地加载",
+    state: "done",
+    img: "assets/works/bili-quiet.png",
+    href: "https://github.com/1909199162-maker/bili-quiet",
+    linkText: "看源码"
   },
   {
     cat: "mini",
@@ -99,7 +100,7 @@ function render(cat) {
   const list = cat === "all" ? WORKS : WORKS.filter(w => w.cat === cat);
   track.innerHTML = list.map(w => `
     <article class="gw-card">
-      <div class="gw-thumb">配图 960×720</div>
+      <div class="gw-thumb">${w.img ? `<img src="${w.img}" alt="${w.title} 截图" loading="lazy">` : "配图 960×720"}</div>
       <h3>${w.title}</h3>
       <p>${w.desc}</p>
       <div class="gw-meta">

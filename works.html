@@ -15,45 +15,150 @@
   <a href="about.html">关于</a>
 </nav>
 
-<header class="hero wrap" style="padding-bottom:64px">
-  <div class="eyebrow">三个作品</div>
+<header class="hero wrap" style="padding:96px 0 24px">
+  <div class="eyebrow">作品集</div>
   <h1>每一个都能打开。</h1>
+  <p class="sub">点上面的分类，看它们按类型换一批。能点开的，右边就有链接。</p>
 </header>
 
-<main class="wrap section--tight">
+<main class="wrap">
 
-  <div class="row">
-    <div>
-      <h2>插件 · 一键整理标签页</h2>
-      <p>把开得太多、又舍不得关的标签页收进一个清单，按域名自动分组。装在 Edge 里，点图标即用。</p>
-      <p class="meta" style="margin-top:14px;font-size:13px">Manifest V3 · 零依赖 · 本地存储</p>
+  <div class="gw-bar">
+    <div class="gw-bar-inner" role="tablist" aria-label="作品分类">
+      <button role="tab" id="tab-all"    aria-selected="true"  aria-controls="gw-panel">全部</button>
+      <button role="tab" id="tab-site"   aria-selected="false" aria-controls="gw-panel">网站</button>
+      <button role="tab" id="tab-plugin" aria-selected="false" aria-controls="gw-panel">插件</button>
+      <button role="tab" id="tab-mini"   aria-selected="false" aria-controls="gw-panel">小程序</button>
     </div>
-    <div class="ph" style="aspect-ratio:16/10">截图 1280×800</div>
   </div>
 
-  <div class="row">
-    <div>
-      <h2>网站 · 这个作品集</h2>
-      <p>纯静态三页，没有构建工具，没有框架。你要的是"双击能开、手机能看"，不是"技术栈先进"。</p>
-      <p class="meta" style="margin-top:14px;font-size:13px">HTML / CSS / JS · 部署后公网可访问</p>
+  <div class="gw-stage" id="gw-stage">
+    <div class="gw-panel" id="gw-panel">
+      <div class="gw-track" id="gw-track"><!-- 卡片由 JS 生成 --></div>
     </div>
-    <div class="ph" style="aspect-ratio:16/10">截图 1280×800</div>
-  </div>
-
-  <div class="row">
-    <div>
-      <h2>小程序 · 课程表提醒</h2>
-      <p>添加课程、设置提前提醒、当天高亮。体验版扫码可用，正式上线等备案走完。</p>
-      <p class="meta" style="margin-top:14px;font-size:13px">微信小程序 · 云开发 · 体验版</p>
-    </div>
-    <div class="ph" style="aspect-ratio:16/10">手机截图 750×1334</div>
   </div>
 
 </main>
 
-<footer class="foot wrap">
-  每个卡片里的占位块，都标了真实尺寸——换成你的图时，按这个尺寸裁，排版不会乱。
+<footer class="foot wrap" style="margin-top:56px">
+  占位块上都标了真实尺寸。换成自己的截图时按那个尺寸裁，排版不会乱。
 </footer>
 
+<script>
+// ---------- 作品数据：改这里就是改作品页 ----------
+const WORKS = [
+  {
+    cat: "site",
+    title: "这个作品集",
+    desc: "纯静态三页，没有框架、没有构建工具。双击能开，手机能看。",
+    tag: "HTML / CSS / JS",
+    status: "已上线",
+    state: "done",
+    href: "index.html",
+    linkText: "打开首页"
+  },
+  {
+    cat: "site",
+    title: "苹果交互复刻",
+    desc: "药丸滑块 320ms、内容淡出淡入、横向吸附滚动。参数是逐帧量出来的。",
+    tag: "CSS @property / 原生 JS",
+    status: "可玩",
+    state: "done",
+    href: "demo-tabs.html",
+    linkText: "试一试"
+  },
+  {
+    cat: "plugin",
+    title: "番茄计时插件",
+    desc: "点一下锁 25 分钟，到点响一声。装进 Edge，图标一按就用。",
+    tag: "Manifest V3",
+    status: "第 4 课开工",
+    state: "doing",
+    href: "",
+    linkText: ""
+  },
+  {
+    cat: "mini",
+    title: "二手书流转",
+    desc: "拍照上传，别人扫码看详情。体验版扫码可用，不背备案。",
+    tag: "微信小程序",
+    status: "第 10 课开工",
+    state: "doing",
+    href: "",
+    linkText: ""
+  }
+];
+
+const track = document.getElementById("gw-track");
+const stage = document.getElementById("gw-stage");
+const panel = document.getElementById("gw-panel");
+const bar   = document.querySelector(".gw-bar-inner");
+const tabs  = [...document.querySelectorAll('[role="tab"]')];
+
+function render(cat) {
+  const list = cat === "all" ? WORKS : WORKS.filter(w => w.cat === cat);
+  track.innerHTML = list.map(w => `
+    <article class="gw-card">
+      <div class="gw-thumb">配图 960×720</div>
+      <h3>${w.title}</h3>
+      <p>${w.desc}</p>
+      <div class="gw-meta">
+        <span class="gw-status--${w.state}">${w.status} · ${w.tag}</span>
+        ${w.href ? `<a class="gw-open" href="${w.href}">${w.linkText} →</a>` : ""}
+      </div>
+    </article>`).join("");
+  track.scrollLeft = 0;
+}
+
+function movePill(btn) {
+  bar.style.setProperty("--pill-left", btn.offsetLeft + "px");
+  bar.style.setProperty("--pill-width", btn.offsetWidth + "px");
+}
+
+let current = "all";
+
+function switchTo(cat) {
+  if (cat === current) return;
+  const h0 = stage.getBoundingClientRect().height;
+  stage.style.height = h0 + "px";
+  void stage.offsetHeight;
+  panel.classList.add("is-out");            // 先淡出 150ms
+  setTimeout(() => {
+    render(cat);
+    current = cat;
+    stage.style.height = "auto";            // 量新高度
+    const h1 = stage.getBoundingClientRect().height;
+    stage.style.height = h0 + "px";
+    void stage.offsetHeight;
+    stage.style.height = h1 + "px";         // 900ms 缓过去
+    panel.classList.remove("is-out");       // 再淡入 300ms
+  }, 150);
+}
+
+tabs.forEach(btn => btn.addEventListener("click", () => {
+  const cat = btn.id.replace("tab-", "");
+  if (cat === current) return;
+  tabs.forEach(t => t.setAttribute("aria-selected", String(t === btn)));
+  movePill(btn);
+  switchTo(cat);
+}));
+
+bar.addEventListener("keydown", e => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const i = tabs.findIndex(t => t.getAttribute("aria-selected") === "true");
+  const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+  next.focus(); next.click();
+});
+
+render("all");
+requestAnimationFrame(() => movePill(tabs[0]));
+window.addEventListener("resize", () => {
+  const active = tabs.find(t => t.getAttribute("aria-selected") === "true");
+  bar.style.transition = "none";
+  movePill(active);
+  stage.style.height = "auto";          // 窗口变了，高度交还给内容自己算
+  requestAnimationFrame(() => { bar.style.transition = ""; });
+});
+</script>
 </body>
 </html>

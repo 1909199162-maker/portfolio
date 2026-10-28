@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>交互复刻 · 苹果「全系产品细细看」</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230071e3'/%3E%3C/svg%3E">
+<style>
+/* ==========================================================
+   数值全部来自 apple.com.cn/mac 实测（2026-10-28，1440×900）
+   药丸滑块   left / width    320ms   ease-in-out 近似
+   标签文字   color 160ms / opacity 100ms
+   面板切换   opacity 300ms、visibility 300ms
+   容器高度   height 900ms（卡片数量变了，高度得跟着变）
+   卡片本身   ——没有 transform 动画，就是重新排版
+   ========================================================== */
+@property --pill-left { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --pill-width { syntax: '<length>'; inherits: true; initial-value: 0px; }
+
+:root {
+  --ease-apple: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-switch: cubic-bezier(0.4, 0, 0.2, 1);   /* 滑块用这条，起步慢一点、收尾稳 */
+  --ease-height: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --bg-soft: #f5f5f7;
+  --line: #d2d2d7;
+  --accent: #0071e3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "SF Pro SC", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 17px; line-height: 1.6; color: var(--ink);
+  background: #fff; -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.head { padding: 72px 0 32px; }
+.head h1 { font-size: clamp(30px, 4.4vw, 48px); letter-spacing: -0.02em; line-height: 1.1; font-weight: 600; }
+.head p { margin-top: 14px; color: var(--ink-2); max-width: 34em; }
+
+/* ---------- 药丸导航 ---------- */
+.pillbar { position: relative; margin: 26px 0 34px; }
+.pillbar-inner {
+  position: relative;
+  display: inline-flex;
+  padding: 6px;
+  border-radius: 980px;
+  background: var(--bg-soft);
+}
+/* 会滑的那块黑药丸 */
+.pillbar-inner::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: var(--pill-left);
+  width: var(--pill-width);
+  height: calc(100% - 12px);
+  border-radius: 980px;
+  background: #1d1d1f;
+  transition: --pill-left 320ms var(--ease-switch),
+              --pill-width 320ms var(--ease-switch);
+  will-change: left, width;
+}
+.pillbar button {
+  position: relative;
+  z-index: 1;
+  appearance: none; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 15px;
+  padding: 9px 22px;
+  border-radius: 980px;
+  color: var(--ink);
+  transition: color 160ms var(--ease-apple),
+              opacity 100ms var(--ease-apple);
+}
+.pillbar button[aria-selected="true"] { color: #fff; }
+.pillbar button:hover { opacity: 0.7; }
+.pillbar button[aria-selected="true"]:hover { opacity: 1; }
+
+/* ---------- 舞台：高度会缓动 ---------- */
+.stage {
+  overflow: hidden;
+  transition: height 900ms var(--ease-height);
+}
+.panel {
+  padding: 4px 0 6px;
+  transition: opacity 300ms var(--ease-apple);
+}
+/* 淡出比淡入快，换内容时才不会在半透明状态换卡片 */
+.panel.is-out { opacity: 0; transition-duration: 150ms; }
+
+/* ---------- 横向卡片轨道（可以左右拖 / 滚轮横滚 / 触屏滑） ---------- */
+.track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+}
+.track::-webkit-scrollbar { display: none; }
+
+.card {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  background: var(--bg-soft);
+  border-radius: 18px;
+  padding: 20px;
+  transition: transform 240ms var(--ease-apple);
+}
+.card:hover { transform: translateY(-3px); }
+.card .thumb {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #86868b;
+  background: repeating-linear-gradient(45deg, #e8e8ed 0 10px, #ededf2 10px 20px);
+}
+.card h3 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+.card p { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+.card .tag { display: inline-block; margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+
+.hint { margin-top: 26px; font-size: 14px; color: var(--ink-2); }
+.hint code { background: var(--bg-soft); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+
+/* ---------- 手机 ---------- */
+@media (max-width: 734px) {
+  body { font-size: 16px; }
+  .head { padding: 44px 0 22px; }
+  .pillbar button { font-size: 14px; padding: 8px 15px; }
+  .card { flex: 0 0 78vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pillbar-inner::before, .stage, .panel, .card { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="head">
+    <h1>全系作品细细看</h1>
+    <p>一个复刻：点分类，黑药丸滑过去、内容换掉、高度跟着缓。所有数字都是从苹果官网量出来的，不是猜的。</p>
+
+    <div class="pillbar">
+      <div class="pillbar-inner" role="tablist" aria-label="作品分类">
+        <button role="tab" id="tab-all"    aria-selected="true"  aria-controls="panel">全部</button>
+        <button role="tab" id="tab-plugin" aria-selected="false" aria-controls="panel">插件</button>
+        <button role="tab" id="tab-site"   aria-selected="false" aria-controls="panel">网站</button>
+        <button role="tab" id="tab-mini"   aria-selected="false" aria-controls="panel">小程序</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="panel" id="panel">
+      <div class="track" id="track"><!-- 卡片由 JS 生成 --></div>
+    </div>
+  </div>
+
+  <p class="hint">
+    能自己拧的旋钮：<code>320ms</code>（药丸滑动）、<code>300ms</code>（内容淡入）、<code>900ms</code>（高度变化）、<code>--ease-switch</code>（曲线）。
+    卡片可以左右拖，会自己吸附到边。
+  </p>
+</div>
+
+<script>
+// ---------- 数据：换成你自己的作品就是你的作品集 ----------
+const WORKS = [
+  { cat: "plugin", title: "番茄计时插件",  desc: "点一下就锁 25 分钟，到点响一声。", tag: "Edge · Manifest V3" },
+  { cat: "plugin", title: "划词翻译插件",  desc: "选中英文，右下角浮出中文。",       tag: "Edge · Manifest V3" },
+  { cat: "plugin", title: "标签页整理插件", desc: "超过 20 个标签就按域名收起来。",   tag: "Edge · Manifest V3" },
+  { cat: "site",   title: "作品集网站",    desc: "你正在看的这个站。",               tag: "HTML / CSS / JS" },
+  { cat: "site",   title: "课程笔记站",    desc: "按周归档，支持全文搜索。",         tag: "静态站 · 免费托管" },
+  { cat: "site",   title: "食堂菜单",      desc: "每天 7 点自动更新三个食堂。",       tag: "静态站 · JSON" },
+  { cat: "mini",   title: "二手书流转",    desc: "拍照上传，扫码看详情。",           tag: "微信小程序" },
+  { cat: "mini",   title: "失物招领",      desc: "按楼栋和时间筛选。",               tag: "微信小程序" },
+];
+
+const track = document.getElementById("track");
+const stage = document.getElementById("stage");
+const panel = document.getElementById("panel");
+const bar   = document.querySelector(".pillbar-inner");
+const tabs  = [...document.querySelectorAll('[role="tab"]')];
+const inner = bar;
+
+// ---------- 渲染卡片 ----------
+function render(cat) {
+  const list = cat === "all" ? WORKS : WORKS.filter(w => w.cat === cat);
+  track.innerHTML = list.map(w => `
+    <article class="card">
+      <div class="thumb">配图 960×720</div>
+      <h3>${w.title}</h3>
+      <p>${w.desc}</p>
+      <span class="tag">${w.tag}</span>
+    </article>`).join("");
+  track.scrollLeft = 0;
+}
+
+// ---------- 药丸位置：量当前按钮，写到 CSS 变量上 ----------
+function movePill(btn) {
+  // offsetLeft 相对 .pillbar-inner，正好对上 ::before 的 left
+  inner.style.setProperty("--pill-left", btn.offsetLeft + "px");
+  inner.style.setProperty("--pill-width", btn.offsetWidth + "px");
+}
+
+let current = "all";
+
+function switchTo(cat, btn) {
+  if (cat === current) return;
+
+  // 1) 先量旧高度，钉成像素（不钉住的话 transition 不会动）
+  const h0 = stage.getBoundingClientRect().height;
+  stage.style.height = h0 + "px";
+  void stage.offsetHeight;              // 强制回流，让浏览器认下这个起点
+
+  // 2) 内容先淡出
+  panel.classList.add("is-out");
+
+  setTimeout(() => {
+    // 3) 换内容
+    render(cat);
+    current = cat;
+
+    // 4) 量新高度，再过渡过去（900ms）
+    stage.style.height = "auto";
+    const h1 = stage.getBoundingClientRect().height;
+    stage.style.height = h0 + "px";
+    void stage.offsetHeight;
+    stage.style.height = h1 + "px";
+
+    // 5) 淡入
+    panel.classList.remove("is-out");
+  }, 150);                              // 150ms ≈ 300ms 淡出的一半，观感上"没空档"
+}
+
+// ---------- 事件 ----------
+tabs.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const cat = btn.id.replace("tab-", "");
+    if (cat === current) return;
+    tabs.forEach(t => t.setAttribute("aria-selected", String(t === btn)));
+    movePill(btn);
+    switchTo(cat, btn);
+  });
+});
+
+// 键盘 ← →（能用键盘操作，才叫"做完了"）
+bar.addEventListener("keydown", e => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const i = tabs.findIndex(t => t.getAttribute("aria-selected") === "true");
+  const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+  next.focus();
+  next.click();
+});
+
+// ---------- 初始化 ----------
+render("all");
+requestAnimationFrame(() => movePill(tabs[0]));
+window.addEventListener("resize", () => {
+  const active = tabs.find(t => t.getAttribute("aria-selected") === "true");
+  // 窗口变了，药丸要重新量一次（宽度变了），但这时候不该有动画
+  inner.style.transition = "none";
+  movePill(active);
+  requestAnimationFrame(() => { inner.style.transition = ""; });
+});
+</script>
+</body>
+</html>

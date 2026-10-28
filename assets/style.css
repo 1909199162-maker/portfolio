@@ -1,0 +1,175 @@
+/* ==========================================================
+   手感令牌 —— 全部数值来自 apple.com.cn/store 实测
+   规则：1) 只动 opacity / transform  2) 一屏最多 2 种时长
+        3) 用 transition 不用 animation（可被打断）
+   ========================================================== */
+:root {
+  --ease-apple: cubic-bezier(0.4, 0, 0.6, 1);
+  --t-fast: 100ms;   /* 按压 */
+  --t-base: 240ms;   /* 淡入 + 位移 */
+  --t-slow: 320ms;   /* hover 变色、弹层 */
+  --t-page: 400ms;   /* 页面切换（苹果没有，我们自己加） */
+
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --line: #d2d2d7;
+  --bg-soft: #f5f5f7;
+  --accent: #0071e3;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  /* Windows 上没有 SF Pro / PingFang，按实测字体栈回退到 Segoe UI + 雅黑 */
+  font-family: "SF Pro SC", "SF Pro Text", -apple-system, "Segoe UI",
+               "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+  font-size: 17px;          /* 实测：苹果正文不是 16px */
+  line-height: 1.6;
+  color: var(--ink);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 导航 ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 28px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.nav a {
+  font-size: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--t-slow) var(--ease-apple),
+              opacity var(--t-slow) var(--ease-apple);
+}
+.nav a:hover { color: var(--accent); }
+.nav a[aria-current="page"] { color: var(--ink-2); }
+
+/* ---------- 通用容器 ---------- */
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+.section { padding: 96px 0; }
+.section--tight { padding: 64px 0; }
+
+/* ---------- 首屏 ---------- */
+.hero {
+  padding: 120px 0 96px;
+  text-align: center;
+}
+.hero .eyebrow {
+  font-size: 14px; color: var(--ink-2); letter-spacing: 0.01em;
+  margin-bottom: 14px;
+}
+.hero h1 {
+  font-size: clamp(34px, 6vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  max-width: 16em;
+  margin: 0 auto;
+}
+.hero p.sub {
+  margin: 22px auto 0;
+  max-width: 30em;
+  color: var(--ink-2);
+  font-size: 19px;
+}
+.actions { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-block;
+  padding: 11px 22px;
+  border-radius: 980px;
+  font-size: 15px;
+  text-decoration: none;
+  transition: opacity var(--t-slow) var(--ease-apple),
+              transform var(--t-fast) var(--ease-apple),
+              background-color var(--t-slow) var(--ease-apple);
+}
+.btn:active { transform: scale(0.97); }
+.btn--primary { background: var(--accent); color: #fff; }
+.btn--primary:hover { opacity: 0.88; }
+.btn--ghost { color: var(--accent); }
+.btn--ghost:hover { background: rgba(0, 113, 227, 0.06); }
+
+/* ---------- 卡片 ---------- */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card {
+  background: var(--bg-soft);
+  border-radius: var(--radius);
+  padding: 28px 24px 30px;
+  transition: transform var(--t-base) var(--ease-apple),
+              opacity var(--t-base) var(--ease-apple);
+}
+.card:hover { transform: translateY(-4px); }
+.card h3 { font-size: 21px; letter-spacing: -0.01em; margin-bottom: 8px; font-weight: 600; }
+.card p { font-size: 14px; color: var(--ink-2); }
+.card .meta { margin-top: 16px; font-size: 12px; color: var(--ink-2); }
+
+/* 占位图：图还没到位时用它，标注真实尺寸，最后替换 */
+.ph {
+  width: 100%; aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #86868b;
+  background: repeating-linear-gradient(45deg, #e8e8ed 0 10px, #ededf2 10px 20px);
+}
+
+/* ---------- 列表页 ---------- */
+.row {
+  display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; align-items: center;
+  padding: 44px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row:last-child { border-bottom: 0; }
+.row h2 { font-size: 30px; letter-spacing: -0.015em; font-weight: 600; margin-bottom: 12px; }
+.row p { color: var(--ink-2); font-size: 16px; }
+
+/* ---------- 页脚 ---------- */
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 40px 0 60px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* ---------- 手机 ---------- */
+@media (max-width: 734px) {
+  body { font-size: 16px; }
+  .section { padding: 64px 0; }
+  .hero { padding: 72px 0 56px; }
+  .grid { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 1fr; gap: 20px; padding: 32px 0; }
+  .row h2 { font-size: 24px; }
+  .nav { gap: 18px; }
+}
+
+/* ==========================================================
+   第 ② 步：页面切换过渡（已开启）
+   跨文档 View Transitions；不支持的浏览器自动降级为直接切换。
+   注意：必须用 http 打开（双击「启动.bat」），file:// 下不生效。
+   ========================================================== */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: 150ms var(--ease-apple) both fade-out;
+}
+::view-transition-new(root) {
+  animation: 250ms var(--ease-apple) both fade-in-up;
+}
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
